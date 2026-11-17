@@ -1,4 +1,3 @@
-Pipeline-
 pipeline {
     agent any
     tools {
@@ -19,8 +18,8 @@ pipeline {
         stage('CQA') {
             steps {
                 withSonarQubeEnv('mysonar') {
-sh "mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=myproject"
-              }
+                    sh "mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=myproject"
+                }
             }
         }
         stage('QualityGates') {
@@ -48,19 +47,19 @@ sh "mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dso
         stage('Registry') {
             steps {
                 script {
-withDockerRegistry(credentialsId: 'docker hub') {
-    sh 'docker tag appimage vamc76/k8swebapp:frontend'
-    sh 'docker tag dbimage vamc76/k8swebapp:db'
-    sh 'docker push vamc76/k8swebapp:frontend'
-    sh 'docker push vamc76/k8swebapp:db'
-                   }
+                    withDockerRegistry(credentialsId: 'docker hub') {
+                        sh 'docker tag appimage vamc76/k8swebapp:frontend'
+                        sh 'docker tag dbimage vamc76/k8swebapp:db'
+                        sh 'docker push vamc76/k8swebapp:frontend'
+                        sh 'docker push vamc76/k8swebapp:db'
+                    }
                 }
             }
         }
         stage('Compose') {
             steps {
-                sh 'docker-compose build'
-                sh 'docker-compose up -d'
+                sh 'docker-compose pull'
+                sh 'docker-compose up -d --remove-orphans'
                 sleep 10
                 sh 'docker ps'
             }
